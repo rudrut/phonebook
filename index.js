@@ -1,7 +1,12 @@
 const express = require('express')
 const app = express()
 
+const morgan = require('morgan')
+
+morgan.token('body', (req) => JSON.stringify(req.body))
+
 app.use(express.json())
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
 let persons = [
     { 
@@ -36,13 +41,6 @@ app.get('/info', (request, response) => {
 	response.send(info)
 })
 
-//const generateId = () => {
-//  const maxId = persons.length > 0
-//    ? Math.max(...persons.map(p => p.id))
-//    : 0
-//  return maxId + 1
-//}
-
 const generateId = () => {
   range = 1000000000
   return Math.floor(Math.random() * range)
@@ -57,19 +55,16 @@ app.post('/api/persons', (request, response) => {
     })
   }
 
-  const person = {
-    id: generateId(),
-    name: body.name,
-    number: body.number,
-  }
-
-  console.log(body.name)
-  console.log(persons.map(p => p.name))
-
   if (persons.find((p) => p.name === body.name)) {
     return response.status(400).json({ 
       error: 'name must be unique'
     })
+  }
+
+  const person = {
+    id: generateId(),
+    name: body.name,
+    number: body.number,
   }
 
   persons = persons.concat(person)
