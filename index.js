@@ -44,16 +44,16 @@ let persons = [
     }
 ]
 
-
-
-let info = `Phonebook has info for ${persons.length} people <br/> ${Date()}`
+//let info = `Phonebook has info for ${Person.countDocuments({}, (error, count) => count)} people <br/> ${Date()}`
 
 app.get('/', (request, response) => {
 	response.send('<h1>Hello World!</h1>')
 })
 
 app.get('/info', (request, response) => {
-	response.send(info)
+  Person.countDocuments({}).then((result) => {
+    response.send(`<h2>Phonebook has info for ${result} people </h2> <p> ${Date()} </p>`)
+  })
 })
 
 const generateId = () => {
@@ -98,7 +98,7 @@ app.put('/api/persons/:id', (request, response, next) => {
 app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id).then(person => {
     if (person) {
-      response.json(note)
+      response.json(person)
     } else {
       response.status(404).end()
     }
