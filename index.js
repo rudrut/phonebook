@@ -9,10 +9,10 @@ morgan.token('body', (req) => JSON.stringify(req.body))
 
 const cors = require('cors')
 
+app.use(express.static('build'))
 app.use(express.json())
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 app.use(cors())
-app.use(express.static('build'))
 
 let persons = [
     { 
@@ -55,11 +55,11 @@ const generateId = () => {
 app.post('/api/persons', (request, response) => {
   const body = request.body
 
-  if (body.name === undefined || body.number === undefined) {
-    return response.status(400).json({ 
-      error: 'name or number missing'
-    })
-  }
+  //if (body.name === undefined || body.number === undefined) {
+  //  return response.status(400).json({ 
+  //    error: 'name or number missing'
+  //  })
+  //}
 
   const person = new Person({
     name: body.name,
@@ -77,17 +77,23 @@ app.get('/api/persons', (request, response) => {
   })
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id).then(person => {
-    response.json(person)
+    if (person) {
+      response.json(note)
+    } else {
+      response.status(404).end()
+    }
   })
+  .catch(error => next(error))
 })
 
-app.delete('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  persons = persons.filter(person => person.id !== id)
-
-  response.status(204).end()
+app.delete('/api/persons/:id', (request, response, next) => {
+  Person.findByIdAndRemove(request.params.id)
+    .then(result => {
+      response.status(204).end()
+    })
+    .catch(error => next(error))
 })
 
 const PORT = process.env.PORT
