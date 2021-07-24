@@ -1,13 +1,16 @@
-require('dotenv').config()
 const express = require('express')
 const app = express()
+const cors = require('cors')
+require('dotenv').config()
 const Person = require('./models/person')
-
 const morgan = require('morgan')
 
 morgan.token('body', (req) => JSON.stringify(req.body))
 
-const cors = require('cors')
+app.use(express.static('build'))
+app.use(cors())
+app.use(express.json())
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
 const errorHandler = (error, request, response, next) => {
   console.error(error.message)
@@ -18,12 +21,6 @@ const errorHandler = (error, request, response, next) => {
 
   next(error)
 }
-
-app.use(express.static('build'))
-app.use(express.json())
-app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
-app.use(cors())
-app.use(errorHandler)
 
 let persons = [
     { 
@@ -117,6 +114,8 @@ app.delete('/api/persons/:id', (request, response, next) => {
     })
     .catch(error => next(error))
 })
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
