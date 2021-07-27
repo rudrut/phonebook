@@ -95,10 +95,19 @@ app.put("/api/persons/:id", (request, response, next) => {
 
   const person = {
     name: body.name,
-    number: body.number,
+    number: body.number
   };
 
-  Person.findByIdAndUpdate(request.params.id, person, { number: body.number })
+  Person.schema.path('name').validate(() => {
+    return (!body.name === request.params.name && body.name.length >= 3)
+  }, 'Name must be unique and equal to or more than 3 characters')
+
+  Person.schema.path('number').validate(() => {
+    return (body.number.length >= 8)
+  }, 'Number must be equal to or more than 8 digits')
+
+  const opts = {runValidators: true}
+  Person.findOneAndUpdate(request.params.id, person, opts)
     .then((updatedPerson) => {
       response.json(updatedPerson);
     })
